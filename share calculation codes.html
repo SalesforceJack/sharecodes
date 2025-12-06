@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Ortaklık Kâr ve Kredi Dağıtım Hesaplama</title>
     <style>
-        /* CSS Stilleri */
+        
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; }
         h1, h2, h3 { color: #1565c0; }
         .input-group { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background-color: #fff; }
@@ -49,7 +49,7 @@
     <div id="results">
         </div>
 <script>
-// Function to calculate the monthly payment for a loan
+
 function calculateMonthlyPayment(principal, annualRate, months) {
     const monthlyRate = annualRate / 12 / 100;
     const numberOfPayments = months;
@@ -65,20 +65,18 @@ function calculateMonthlyPayment(principal, annualRate, months) {
 }
 
 function calculateProfitDistribution() {
-    // 1. Girdi Değerlerini Al
+   
     const dukkanEBITDAInput = document.getElementById('dukkanEBITDA').value;
     const loanAmountInput = document.getElementById('loanAmount').value;
     const loanTermMonthsInput = document.getElementById('loanTermMonths').value; 
 
-    // Giriş formatı düzeltmesi: Virgülleri kaldırır
+   
     const initialAnnualNetProfit = parseFloat(dukkanEBITDAInput.replace(/,/g, '')); 
     const totalLoanPrincipal = parseFloat(loanAmountInput.replace(/,/g, ''));
     const loanTermMonths = parseInt(loanTermMonthsInput); 
     
-    // Analiz süresi: Kredi vadesine eşitlenir. Ay sayısı yıl sayısına çevrilir ve yukarı yuvarlanır.
     const NUM_YEARS_OF_ANALYSIS = Math.ceil(loanTermMonths / 12); 
 
-    // Sabitler
     const APR = 10; 
     const ANNUAL_GROWTH_RATE = 0.05; 
     const EXIT_MULTIPLIER = 3; 
@@ -99,12 +97,12 @@ function calculateProfitDistribution() {
     const REMAINDER_PARTNER_1_SHARE = 0.50; 
     const REMAINDER_OTHER_PARTNERS_SHARE = 0.50; 
 
-    // 2. Kredi Amortisman Tablosu oluşturulur (Tüm kredi vadesi boyunca)
+    
     const monthlyLoanPayment = calculateMonthlyPayment(totalLoanPrincipal, APR, loanTermMonths);
     let loanBalance = totalLoanPrincipal;
     let amortizationSchedule = [];
 
-    // Kredi vadesinin tamamı boyunca aylık ödemeler hesaplanır.
+    
     const maxMonthsToAnalyze = loanTermMonths; 
 
     for (let month = 1; month <= maxMonthsToAnalyze; month++) {
@@ -124,9 +122,9 @@ function calculateProfitDistribution() {
              loanBalance = loanBalance - principalPayment;
         }
         
-        const year = Math.ceil(month / 12); // Hangi yıla ait olduğunu bul
+        const year = Math.ceil(month / 12); // 
 
-        // Yıllık verileri toplamak için kontrol
+        
         if (!amortizationSchedule[year]) {
             amortizationSchedule[year] = { year: year, totalPayment: 0, endingBalance: 0 };
         }
@@ -135,7 +133,7 @@ function calculateProfitDistribution() {
         amortizationSchedule[year].endingBalance = loanBalance;
     }
     
-    // 3. Kâr ve Kredi Dağıtımı (Yıllık Döngü)
+ 
 
     let htmlOutput = `
         <h2> Kâr ve Kredi Dağıtım Sonuçları (${NUM_YEARS_OF_ANALYSIS} Yıl Analiz, %5 Büyüme)</h2>
@@ -182,7 +180,7 @@ function calculateProfitDistribution() {
     
     for (let year = 1; year <= NUM_YEARS_OF_ANALYSIS; year++) {
         
-        // Yıllık Kar Artışı Hesaplama
+        
         if (year > 1) {
             currentAnnualNetProfit *= (1 + ANNUAL_GROWTH_RATE);
         }
@@ -192,7 +190,7 @@ function calculateProfitDistribution() {
             finalYearEBITDA = currentAnnualNetProfit; // Son yıl kârını kaydet (Satış için kullanılacak)
         }
         
-        // A. Kâr Dağıtımı
+   
         const partner1DirectShare = currentAnnualNetProfit * OPERATOR_DIRECT_FRACTION;
         const remainingProfit = currentAnnualNetProfit - partner1DirectShare;
         const partner1RemainderShare = remainingProfit * REMAINDER_PARTNER_1_SHARE;
@@ -202,10 +200,9 @@ function calculateProfitDistribution() {
         const P2_ANNUAL_PROFIT = otherPartnersTotalRemainderShare / 2;
         const P3_ANNUAL_PROFIT = otherPartnersTotalRemainderShare / 2;
         
-        // B. Kredi Sorumluluğu Dağıtımı
+       
         let totalYearlyLoanPayment = 0;
         
-        // Amortisman tablosundan yıllık ödemeyi al (amortizationSchedule'da index 1'den başladığı için direkt year kullanılır)
         const loanData = amortizationSchedule[year];
         if (loanData) {
             totalYearlyLoanPayment = loanData.totalPayment;
@@ -215,7 +212,7 @@ function calculateProfitDistribution() {
         const P2_LOAN_SHARE = totalYearlyLoanPayment * PARTNER_2_OWNERSHIP;
         const P3_LOAN_SHARE = totalYearlyLoanPayment * PARTNER_3_OWNERSHIP;
         
-        // C. Net Kazanç (Kâr Payı - Kredi Ödemesi)
+    
         const P1_NET_CASH = P1_ANNUAL_PROFIT - P1_LOAN_SHARE;
         const P2_NET_CASH = P2_ANNUAL_PROFIT - P2_LOAN_SHARE;
         const P3_NET_CASH = P3_ANNUAL_PROFIT - P3_LOAN_SHARE;
@@ -224,7 +221,7 @@ function calculateProfitDistribution() {
         cumulativeP2Net += P2_NET_CASH;
         cumulativeP3Net += P3_NET_CASH;
 
-        // Tablo Satırını Ekle
+      
         htmlOutput += `
             <tr>
                 <td>**${year}. Yıl**</td>
@@ -242,20 +239,17 @@ function calculateProfitDistribution() {
         `;
     }
     
-    // 4. İşletme Satış Hesaplaması (Dinamik Sürenin Sonu)
+   
     
-    // Kredi Bakiyesi: Analiz süresinin sonundaki bakiye.
     const finalLoanBalance = amortizationSchedule[NUM_YEARS_OF_ANALYSIS] ? amortizationSchedule[NUM_YEARS_OF_ANALYSIS].endingBalance : 0;
     
     const saleValue = finalYearEBITDA * EXIT_MULTIPLIER;
     const netSaleProceeds = saleValue - finalLoanBalance; 
 
-    // Satış Gelirinin Mülkiyet Oranına Göre Dağıtımı
     const P1_SALE_PROCEEDS = netSaleProceeds * PARTNER_1_OWNERSHIP;
     const P2_SALE_PROCEEDS = netSaleProceeds * PARTNER_2_OWNERSHIP;
     const P3_SALE_PROCEEDS = netSaleProceeds * PARTNER_3_OWNERSHIP;
 
-    // Toplam Kazanç (Kümülatif Net Kâr + Satış Payı)
     const P1_GRAND_TOTAL = cumulativeP1Net + P1_SALE_PROCEEDS;
     const P2_GRAND_TOTAL = cumulativeP2Net + P2_SALE_PROCEEDS;
     const P3_GRAND_TOTAL = cumulativeP3Net + P3_SALE_PROCEEDS;
@@ -277,7 +271,7 @@ function calculateProfitDistribution() {
         </table>
         
         <br>
-        <h2>📊 ${NUM_YEARS_OF_ANALYSIS} Yıl Sonu Satış ve Toplam Kazanç Hesaplaması</h2>
+        <h2> ${NUM_YEARS_OF_ANALYSIS} Yıl Sonu Satış ve Toplam Kazanç Hesaplaması</h2>
         <table class="results-table">
             <thead>
                 <tr>
