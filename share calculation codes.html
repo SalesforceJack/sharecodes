@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Ortaklık Kâr ve Kredi Dağıtım Hesaplama</title>
     <style>
-        
+        /* CSS Stilleri */
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; }
         h1, h2, h3 { color: #1565c0; }
         .input-group { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background-color: #fff; }
@@ -13,6 +13,7 @@
         button { padding: 12px 25px; cursor: pointer; background-color: #1565c0; color: white; border: none; border-radius: 4px; margin-top: 15px; font-size: 16px; transition: background-color 0.3s; }
         button:hover { background-color: #0d47a1; }
         
+        /* Sonuç Tablosu Stilleri */
         .results-table { width: 100%; border-collapse: collapse; margin-top: 25px; font-size: 0.9em; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .results-table th, .results-table td { border: 1px solid #e0e0e0; padding: 10px; text-align: right; }
         .results-table th { background-color: #e3f2fd; color: #1565c0; text-align: center; font-weight: bold; }
@@ -24,303 +25,20 @@
     </style>
 </head>
 <body>
-    <h1>Ortaklık Kâr ve Kredi Dağıtımı Hesaplayıcı </h1>
+    <h1>Ortaklık Kâr ve Kredi Dağıtımı Hesaplayıcı</h1>
 
     <div class="input-group">
-        <label for="dukkanEBITDA">Yıllık Başlangıç Net Kârı  :</label>
+        <label for="dukkanEBITDA">Yıllık Başlangıç Net Kârı:</label>
         <input type="text" id="dukkanEBITDA" value="100000" placeholder="Örn: 100000">
     </div>
 
     <div class="input-group">
-        <label for="loanAmount">Toplam Kredi Tutarı :</label>
+        <label for="loanAmount">Toplam Kredi Tutarı:</label>
         <input type="text" id="loanAmount" value="300000" placeholder="Örn: 300000">
     </div>
 
     <div class="input-group">
-        <label for="loanTermMonths">Kredi Vadesi (Ay) / Analiz Süresi :</label>
+        <label for="loanTermMonths">Kredi Vadesi (Ay) / Analiz Süresi:</label>
         <input type="number" id="loanTermMonths" value="84" min="12" placeholder="Örn: 36 (3 yıl)">
         <p style="font-size: 0.8em; color: #555;">(36 yazarsanız 3 yıllık kar dağıtımı ve satış hesaplanır.)</p>
     </div>
-    
-    <button onclick="calculateProfitDistribution()">Kredi Vadesine Göre Net Kazancı Hesapla</button>
-    
-    <hr>
-    
-    <div id="results">
-        </div>
-<script>
-
-function calculateMonthlyPayment(principal, annualRate, months) {
-    const monthlyRate = annualRate / 12 / 100;
-    const numberOfPayments = months;
-
-    if (monthlyRate === 0 || numberOfPayments === 0) {
-        return principal / 1; 
-    }
-
-    // Mortgage Formula: M = P [ i(1 + i)^n ] / [ (1 + i)^n – 1]
-    const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
-    
-    return monthlyPayment;
-}
-
-function calculateProfitDistribution() {
-   
-    const dukkanEBITDAInput = document.getElementById('dukkanEBITDA').value;
-    const loanAmountInput = document.getElementById('loanAmount').value;
-    const loanTermMonthsInput = document.getElementById('loanTermMonths').value; 
-
-   
-    const initialAnnualNetProfit = parseFloat(dukkanEBITDAInput.replace(/,/g, '')); 
-    const totalLoanPrincipal = parseFloat(loanAmountInput.replace(/,/g, ''));
-    const loanTermMonths = parseInt(loanTermMonthsInput); 
-    
-    const NUM_YEARS_OF_ANALYSIS = Math.ceil(loanTermMonths / 12); 
-
-    const APR = 10; 
-    const ANNUAL_GROWTH_RATE = 0.05; 
-    const EXIT_MULTIPLIER = 3; 
-    
-    const PARTNER_1_OWNERSHIP = 0.50; 
-    const PARTNER_2_OWNERSHIP = 0.25; 
-    const PARTNER_3_OWNERSHIP = 0.25; 
-    
-    if (isNaN(initialAnnualNetProfit) || initialAnnualNetProfit <= 0 || 
-        isNaN(totalLoanPrincipal) || totalLoanPrincipal < 0 || 
-        isNaN(loanTermMonths) || loanTermMonths <= 0) {
-        document.getElementById('results').innerHTML = '<p class="error">Lütfen geçerli kâr, kredi miktarı ve ay sayısı girin.</p>';
-        return;
-    }
-
-    // --- Kâr Dağıtım Kuralları ---
-    const OPERATOR_DIRECT_FRACTION = 1 / 3; 
-    const REMAINDER_PARTNER_1_SHARE = 0.50; 
-    const REMAINDER_OTHER_PARTNERS_SHARE = 0.50; 
-
-    
-    const monthlyLoanPayment = calculateMonthlyPayment(totalLoanPrincipal, APR, loanTermMonths);
-    let loanBalance = totalLoanPrincipal;
-    let amortizationSchedule = [];
-
-    
-    const maxMonthsToAnalyze = loanTermMonths; 
-
-    for (let month = 1; month <= maxMonthsToAnalyze; month++) {
-        if (loanBalance <= 0) break;
-
-        const monthlyRate = APR / 12 / 100;
-        const interestPayment = loanBalance * monthlyRate;
-        
-        let principalPayment = monthlyLoanPayment - interestPayment;
-        let payment = monthlyLoanPayment;
-
-        if (principalPayment > loanBalance) {
-            principalPayment = loanBalance;
-            payment = interestPayment + principalPayment;
-            loanBalance = 0;
-        } else {
-             loanBalance = loanBalance - principalPayment;
-        }
-        
-        const year = Math.ceil(month / 12); // 
-
-        
-        if (!amortizationSchedule[year]) {
-            amortizationSchedule[year] = { year: year, totalPayment: 0, endingBalance: 0 };
-        }
-        
-        amortizationSchedule[year].totalPayment += payment;
-        amortizationSchedule[year].endingBalance = loanBalance;
-    }
-    
- 
-
-    let htmlOutput = `
-        <h2> Kâr ve Kredi Dağıtım Sonuçları (${NUM_YEARS_OF_ANALYSIS} Yıl Analiz, %5 Büyüme)</h2>
-        <h3>Girdiler</h3>
-        <ul>
-            <li>**Başlangıç Yıllık Net Kâr:** ${initialAnnualNetProfit.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })}</li>
-            <li>**Yıllık Kâr Büyüme Oranı:** %${(ANNUAL_GROWTH_RATE * 100).toFixed(0)}</li>
-            <li>**Analiz ve Satış Süresi:** ${NUM_YEARS_OF_ANALYSIS} Yıl (${loanTermMonths} Ay)</li>
-            <li>**Satış Çarpanı (Exit Multiplier):** ${EXIT_MULTIPLIER}x Son Yıl EBITDA</li>
-            <li>**Toplam Kredi Tutarı:** ${totalLoanPrincipal.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })}</li>
-            <li>**Aylık Kredi Taksiti:** ${monthlyLoanPayment.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })}</li>
-        </ul>
-
-        <table class="results-table">
-            <thead>
-                <tr>
-                    <th rowspan="2">Yıl</th>
-                    <th rowspan="2">Yıllık Toplam Kar</th>
-                    <th colspan="3">1. Ortak (İşleten, %50 Mülkiyet)</th>
-                    <th colspan="3">2. Ortak (%25 Mülkiyet)</th>
-                    <th colspan="3">3. Ortak (%25 Mülkiyet)</th>
-                </tr>
-                <tr>
-                    <th>Kâr Payı</th>
-                    <th class="loan">Kredi Ödemesi (%50)</th>
-                    <th>Net Kazanç</th>
-                    <th>Kâr Payı</th>
-                    <th class="loan">Kredi Ödemesi (%25)</th>
-                    <th>Net Kazanç</th>
-                    <th>Kâr Payı</th>
-                    <th class="loan">Kredi Ödemesi (%25)</th>
-                    <th>Net Kazanç</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    let cumulativeP1Net = 0;
-    let cumulativeP2Net = 0;
-    let cumulativeP3Net = 0;
-    let currentAnnualNetProfit = initialAnnualNetProfit;
-    let cumulativeTotalProfit = 0;
-    let finalYearEBITDA = 0; 
-    
-    for (let year = 1; year <= NUM_YEARS_OF_ANALYSIS; year++) {
-        
-        
-        if (year > 1) {
-            currentAnnualNetProfit *= (1 + ANNUAL_GROWTH_RATE);
-        }
-        cumulativeTotalProfit += currentAnnualNetProfit;
-
-        if (year === NUM_YEARS_OF_ANALYSIS) {
-            finalYearEBITDA = currentAnnualNetProfit; // Son yıl kârını kaydet (Satış için kullanılacak)
-        }
-        
-   
-        const partner1DirectShare = currentAnnualNetProfit * OPERATOR_DIRECT_FRACTION;
-        const remainingProfit = currentAnnualNetProfit - partner1DirectShare;
-        const partner1RemainderShare = remainingProfit * REMAINDER_PARTNER_1_SHARE;
-        const otherPartnersTotalRemainderShare = remainingProfit * REMAINDER_OTHER_PARTNERS_SHARE; 
-        
-        const P1_ANNUAL_PROFIT = partner1DirectShare + partner1RemainderShare;
-        const P2_ANNUAL_PROFIT = otherPartnersTotalRemainderShare / 2;
-        const P3_ANNUAL_PROFIT = otherPartnersTotalRemainderShare / 2;
-        
-       
-        let totalYearlyLoanPayment = 0;
-        
-        const loanData = amortizationSchedule[year];
-        if (loanData) {
-            totalYearlyLoanPayment = loanData.totalPayment;
-        }
-
-        const P1_LOAN_SHARE = totalYearlyLoanPayment * PARTNER_1_OWNERSHIP;
-        const P2_LOAN_SHARE = totalYearlyLoanPayment * PARTNER_2_OWNERSHIP;
-        const P3_LOAN_SHARE = totalYearlyLoanPayment * PARTNER_3_OWNERSHIP;
-        
-    
-        const P1_NET_CASH = P1_ANNUAL_PROFIT - P1_LOAN_SHARE;
-        const P2_NET_CASH = P2_ANNUAL_PROFIT - P2_LOAN_SHARE;
-        const P3_NET_CASH = P3_ANNUAL_PROFIT - P3_LOAN_SHARE;
-
-        cumulativeP1Net += P1_NET_CASH;
-        cumulativeP2Net += P2_NET_CASH;
-        cumulativeP3Net += P3_NET_CASH;
-
-      
-        htmlOutput += `
-            <tr>
-                <td>**${year}. Yıl**</td>
-                <td>${currentAnnualNetProfit.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                <td>${P1_ANNUAL_PROFIT.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                <td class="loan">(${P1_LOAN_SHARE.toLocaleString('en-US', { style: 'currency', currency: 'USD' })})</td>
-                <td class="net-cash-flow">${P1_NET_CASH.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                <td>${P2_ANNUAL_PROFIT.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                <td class="loan">(${P2_LOAN_SHARE.toLocaleString('en-US', { style: 'currency', currency: 'USD' })})</td>
-                <td class="net-cash-flow">${P2_NET_CASH.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                <td>${P3_ANNUAL_PROFIT.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                <td class="loan">(${P3_LOAN_SHARE.toLocaleString('en-US', { style: 'currency', currency: 'USD' })})</td>
-                <td class="net-cash-flow">${P3_NET_CASH.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-            </tr>
-        `;
-    }
-    
-   
-    
-    const finalLoanBalance = amortizationSchedule[NUM_YEARS_OF_ANALYSIS] ? amortizationSchedule[NUM_YEARS_OF_ANALYSIS].endingBalance : 0;
-    
-    const saleValue = finalYearEBITDA * EXIT_MULTIPLIER;
-    const netSaleProceeds = saleValue - finalLoanBalance; 
-
-    const P1_SALE_PROCEEDS = netSaleProceeds * PARTNER_1_OWNERSHIP;
-    const P2_SALE_PROCEEDS = netSaleProceeds * PARTNER_2_OWNERSHIP;
-    const P3_SALE_PROCEEDS = netSaleProceeds * PARTNER_3_OWNERSHIP;
-
-    const P1_GRAND_TOTAL = cumulativeP1Net + P1_SALE_PROCEEDS;
-    const P2_GRAND_TOTAL = cumulativeP2Net + P2_SALE_PROCEEDS;
-    const P3_GRAND_TOTAL = cumulativeP3Net + P3_SALE_PROCEEDS;
-
-    htmlOutput += `
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td>**${NUM_YEARS_OF_ANALYSIS} YILLIK KÜMÜLATİF**</td>
-                    <td>${cumulativeTotalProfit.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                    <td colspan="2"></td>
-                    <td class="net-cash-flow">${cumulativeP1Net.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                    <td colspan="2"></td>
-                    <td class="net-cash-flow">${cumulativeP2Net.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                    <td colspan="2"></td>
-                    <td class="net-cash-flow">${cumulativeP3Net.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                </tr>
-            </tfoot>
-        </table>
-        
-        <br>
-        <h2> ${NUM_YEARS_OF_ANALYSIS} Yıl Sonu Satış ve Toplam Kazanç Hesaplaması</h2>
-        <table class="results-table">
-            <thead>
-                <tr>
-                    <th>Satış Detayı</th>
-                    <th>Ortak 1 (%50)</th>
-                    <th>Ortak 2 (%25)</th>
-                    <th>Ortak 3 (%25)</th>
-                    <th>Toplam</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>**Son Yıl EBITDA**</td>
-                    <td colspan="3"></td>
-                    <td>${finalYearEBITDA.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                </tr>
-                <tr>
-                    <td>**İşletme Satış Değeri (3x)**</td>
-                    <td colspan="3"></td>
-                    <td>${saleValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                </tr>
-                <tr>
-                    <td class="loan">Kalan Kredi Bakiyesi (Satıştan Düşüldü)</td>
-                    <td colspan="3"></td>
-                    <td class="loan">(${finalLoanBalance.toLocaleString('en-US', { style: 'currency', currency: 'USD' })})</td>
-                </tr>
-                <tr>
-                    <td>**Ortaklara Dükkan Satılırsa Gelecek Para **</td>
-                    <td>${P1_SALE_PROCEEDS.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                    <td>${P2_SALE_PROCEEDS.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                    <td>${P3_SALE_PROCEEDS.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                    <td>${netSaleProceeds.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                </tr>
-            </tbody>
-            <tfoot>
-                 <tr>
-                    <td>**TOPLAM GRAND TOTAL (Kâr + Satış Geliri)**</td>
-                    <td class="net-cash-flow">${P1_GRAND_TOTAL.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                    <td class="net-cash-flow">${P2_GRAND_TOTAL.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                    <td class="net-cash-flow">${P3_GRAND_TOTAL.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                    <td>**${(P1_GRAND_TOTAL + P2_GRAND_TOTAL + P3_GRAND_TOTAL).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}**</td>
-                </tr>
-            </tfoot>
-        </table>
-    `;
-
-    document.getElementById('results').innerHTML = htmlOutput;
-}
-</script>
-    
-</body>
-</html>
